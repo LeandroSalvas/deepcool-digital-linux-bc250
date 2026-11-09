@@ -32,52 +32,40 @@ impl Gpu {
     }
 
     /// Reads the value of the GPU temperature sensor and calculates it to be `˚C` or `˚F`.
-    pub fn get_temp(&self, fahrenheit: bool) -> u8 {
+    pub fn get_temp(&self, fahrenheit: bool) -> Option<u8> {
         // Read sensor data
-        let data = read_to_string(format!("{}/temp1_input", &self.hwmon_dir)).unwrap_or_else(|_| {
-            error!("Failed to get GPU temperature (AMD)");
-            exit(1);
-        });
+        let data = read_to_string(format!("{}/temp1_input", &self.hwmon_dir)).ok()?;
 
         // Calculate temperature
-        let mut temp = data.trim_end().parse::<u32>().unwrap();
-        if fahrenheit {
-            temp = temp * 9 / 5 + 32000
-        }
+        let temp = data.trim_end().parse::<u32>().ok()?;
+        let temp = if fahrenheit { temp * 9 / 5 + 32000 } else { temp };
 
-        (temp as f32 / 1000.0).round() as u8
+        Some((temp as f32 / 1000.0).round() as u8)
     }
 
     /// Reads the value of the GPU usage in percentage.
-    pub fn get_usage(&self) -> u8 {
-        let data = read_to_string(&self.usage_file).unwrap_or_else(|_| {
-            error!("Failed to get GPU usage (AMD)");
-            exit(1);
-        });
+    pub fn get_usage(&self) -> Option<u8> {
+        let data = read_to_string(&self.usage_file).ok()?;
 
-        data.trim_end().parse::<u8>().unwrap()
+        data.trim_end().parse::<u8>().ok()
     }
 
     /// Reads the value of the GPU power consumption in Watts.
-    pub fn get_power(&self) -> u16 {
-        let data = read_to_string(format!("{}/power1_average", &self.hwmon_dir)).unwrap_or_else(|_| {
-            error!("Failed to get GPU power (AMD)");
-            exit(1);
-        });
-        let power = data.trim_end().parse::<u64>().unwrap();
+    pub fn get_power(&self) -> Option<u16> {
+        let data = read_to_string(format!("{}/power1_average", &self.hwmon_dir)).ok()?;
 
-        (power / 1_000_000) as u16
+        let power = data.trim_end().parse::<u64>().ok()?;
+
+        Some((power / 1_000_000) as u16)
     }
 
     /// Reads the value of the GPU core frequency in MHz.
-    pub fn get_frequency(&self) -> u16 {
-        let data = read_to_string(format!("{}/freq1_input", &self.hwmon_dir)).unwrap_or_else(|_| {
-            error!("Failed to get GPU core frequency (AMD)");
-            exit(1);
-        });
-        let frequency = data.trim_end().parse::<u64>().unwrap();
+    pub fn get_frequency(&self) -> Option<u16> {
+        let data = read_to_string(format!("{}/freq1_input", &self.hwmon_dir)).ok()?;
 
-        (frequency / 1_000_000) as u16
+        let frequency = data.trim_end().parse::<u64>().ok()?;
+
+        Some((frequency / 1_000_000) as u16)
     }
 }
 

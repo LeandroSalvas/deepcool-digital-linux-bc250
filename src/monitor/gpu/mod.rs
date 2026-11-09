@@ -38,7 +38,7 @@ impl Gpu {
 
     pub fn get_temp(&self, fahrenheit: bool) -> u8 {
         match &self {
-            Gpu::Amd(amd) => amd.get_temp(fahrenheit),
+            Gpu::Amd(amd) => amd.get_temp(fahrenheit).unwrap_or(0),
             Gpu::Intel(intel) => intel.get_temp(fahrenheit),
             Gpu::Nvidia(nvidia) => nvidia.get_temp(fahrenheit),
             Gpu::None => 0,
@@ -47,7 +47,7 @@ impl Gpu {
 
     pub fn get_usage(&self) -> u8 {
         match &self {
-            Gpu::Amd(amd) => amd.get_usage(),
+            Gpu::Amd(amd) => amd.get_usage().unwrap_or(0),
             Gpu::Intel(intel) => intel.get_usage(),
             Gpu::Nvidia(nvidia) => nvidia.get_usage(),
             Gpu::None => 0,
@@ -56,7 +56,7 @@ impl Gpu {
 
     pub fn get_power(&self) -> u16 {
         match &self {
-            Gpu::Amd(amd) => amd.get_power(),
+            Gpu::Amd(amd) => amd.get_power().unwrap_or(0),
             Gpu::Intel(intel) => intel.get_power(),
             Gpu::Nvidia(nvidia) => nvidia.get_power(),
             Gpu::None => 0,
@@ -65,7 +65,7 @@ impl Gpu {
 
     pub fn get_frequency(&self) -> u16 {
         match &self {
-            Gpu::Amd(amd) => amd.get_frequency(),
+            Gpu::Amd(amd) => amd.get_frequency().unwrap_or(0),
             Gpu::Intel(intel) => intel.get_frequency(),
             Gpu::Nvidia(nvidia) => nvidia.get_frequency(),
             Gpu::None => 0,
