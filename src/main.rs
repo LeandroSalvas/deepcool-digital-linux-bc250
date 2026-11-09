@@ -138,6 +138,7 @@ fn main() {
     // Initialize CPU & GPU monitoring
     let cpu = cpu::Cpu::new();
     let gpu = gpu::Gpu::new(pci_device);
+    println!("CPU POWER: {}", cpu.power_source().bright_cyan());
 
     // Connect to device and send datastream
     match product_id {
