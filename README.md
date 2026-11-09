@@ -8,6 +8,7 @@
 # Table of Contents
 - [About](#about)
 - [AMD BC-250 Support](#amd-bc-250-support)
+- [Building from Source](#building-from-source)
 - [Installation](#installation)
 - [Supported Devices](#supported-devices)
     - [MYSTIQUE Series](#mystique-series)
@@ -15,7 +16,6 @@
 - [Automatic Start](#automatic-start)
     - [Systemd](#systemd-arch-debian-ubuntu-fedora-etc)
     - [OpenRC](#openrc-gentoo-artix-linux-etc)
-- [Building from Source](#building-from-source)
 - [Device List](#more-information)
 
 # About
@@ -330,7 +330,7 @@ These devices are unique since they have an LCD display, and I do not personally
 # Usage
 You can run the program with or without providing any options.
 ```bash
-sudo ./deepcool-digital-linux [OPTIONS]
+sudo ./target/release/deepcool-digital-linux [OPTIONS]
 ```
 ```
 Options:
@@ -356,7 +356,7 @@ Commands:
 If you have multiple devices connected, you can run the following
 command to detect them:
 ```bash
-sudo ./deepcool-digital-linux --list
+sudo ./target/release/deepcool-digital-linux --list
 ```
 ```
 Device list [PID | Name]
@@ -366,10 +366,10 @@ Device list [PID | Name]
 ```
 After identifying, you can run them separately by providing their Product ID:
 ```bash
-sudo ./deepcool-digital-linux --pid 4
+sudo ./target/release/deepcool-digital-linux --pid 4
 ```
 ```bash
-sudo ./deepcool-digital-linux --pid 7
+sudo ./target/release/deepcool-digital-linux --pid 7
 ```
 If you want to run them automatically, you can create 2 services
 instead of 1.
@@ -381,9 +381,9 @@ For example:
 # Automatic Start
 
 ## Systemd (Arch, Debian, Ubuntu, Fedora, etc.)
-1. Copy the `deepcool-digital-linux` to the `/usr/sbin/` folder
+1. Install the binary system-wide
 ```bash
-sudo cp ./deepcool-digital-linux /usr/sbin/
+sudo install -m 755 ./target/release/deepcool-digital-linux /usr/sbin/
 ```
 2. Create the service file in the `/etc/systemd/system/` folder
 ```bash
@@ -406,14 +406,15 @@ WantedBy=multi-user.target
 ```
 4. Enable the service
 ```bash
+sudo systemctl daemon-reload
 sudo systemctl enable deepcool-digital
 ```
 *Note: The program will run automatically after the next boot.*
 
 ## OpenRC (Gentoo, Artix Linux, etc.)
-1. Copy the `deepcool-digital-linux` to the `/usr/sbin/` folder
+1. Install the binary system-wide
 ```bash
-sudo cp ./deepcool-digital-linux /usr/sbin/
+sudo install -m 755 ./target/release/deepcool-digital-linux /usr/sbin/
 ```
 2. Create the service file in the `/etc/init.d/` folder
 ```bash
@@ -485,5 +486,60 @@ cargo build -r
 ```
 You can find the binary inside the `./target/release` folder.
 
-# More Information
+# Installation
+After building, the binary is available at `./target/release/deepcool-digital-linux`.
+
+You can run it directly:
+```bash
+sudo ./target/release/deepcool-digital-linux [OPTIONS]
+```
+
+Or install it system-wide:
+```bash
+sudo install -m 755 ./target/release/deepcool-digital-linux /usr/sbin/
+```
+
+You will need root permission to send data to the device.
+
+> [!NOTE]
+> The upstream prebuilt releases do not include the BC-250-specific changes. If you only need
+> general device support, you can download the latest upstream
+> [release](https://github.com/Nortank12/deepcool-digital-linux/releases) and make it
+> executable with `chmod +x deepcool-digital-linux`.
+
+> [!NOTE]
+> On Intel's Arc GPUs, you have to use kernel version 6.13 or higher for proper temperature monitoring.
+
+### Rootless Mode <sup>(optional)</sup>
+If you need to run the program without root privilege, you can create a `udev` rule to access all necessary resources as a user.
+
+1. Locate your directory, it can be `/lib/udev/rules.d` or `/etc/udev/rules.d`
+```bash
+cd /lib/udev/rules.d
+```
+2. Create a new file called `99-deepcool-digital.rules`
+```bash
+sudo nano 99-deepcool-digital.rules
+```
+3. Insert the following:
+```bash
+# Intel RAPL energy usage file
+ACTION=="add", SUBSYSTEM=="powercap", KERNEL=="intel-rapl:0", RUN+="/bin/chmod 444 /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj"
+
+# DeepCool HID raw devices
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3633", MODE="0666"
+
+# CH510 MESH DIGITAL
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="34d3", ATTRS{idProduct}=="1100", MODE="0666"
+```
+4. Reboot your computer
+
+<details>
+<summary><b>Steps for NixOS</b></summary>
+
+> [!NOTE]
+> The Nixpkgs package and the third-party flake track the upstream project and may not include
+> the BC-250-specific changes from this fork.
+
+#### From Nixpkgs
 [Device List and USB Mapping Tables](device-list/README.md)
