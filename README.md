@@ -1,5 +1,13 @@
+# DeepCool Digital Linux — AMD BC-250 Fork
+
+> [!IMPORTANT]
+> This repository is a fork of [Nortank12/deepcool-digital-linux](https://github.com/Nortank12/deepcool-digital-linux).
+> Its focus is to make DeepCool Digital devices work correctly on the **AMD BC-250** platform.
+> General device support and official releases remain in the upstream repository.
+
 # Table of Contents
 - [About](#about)
+- [AMD BC-250 Support](#amd-bc-250-support)
 - [Installation](#installation)
 - [Supported Devices](#supported-devices)
     - [MYSTIQUE Series](#mystique-series)
@@ -11,20 +19,46 @@
 - [Device List](#more-information)
 
 # About
-This CLI program is meant to replicate the functionality of the original `DeepCool Digital`
-Windows program and I am gradually adding support to new devices.
+This is a BC-250-focused fork of the original `deepcool-digital-linux` project. The goal is to
+keep DeepCool Digital devices working on the AMD BC-250, where the usual CPU power/energy
+sensors are not fully available and some AMD GPU sysfs metrics can be temporarily missing.
+
+The upstream project replicates the functionality of the original `DeepCool Digital` Windows
+program and remains the reference for general device support and releases. This fork carries
+the BC-250-specific monitoring changes on top of it.
 
 If you have a device that has not been added or tested yet, please read the notes below the
 supported devices.
-If you think you can collaborate, please write an issue so we can get in touch.
+If you think you can collaborate, please open an issue in the upstream repository.
+
+# AMD BC-250 Support
+This fork adds BC-250-specific handling so DeepCool displays can show useful data on this
+platform:
+
+- Uses the `amdgpu` PPT sensor as APU package power, because the BC-250 does not expose a
+  usable CPU energy counter through the usual RAPL/hwmon interfaces.
+- Falls back to hwmon energy counters or AMD RAPL MSRs when the package power sensor is
+  unavailable.
+- Tolerates transient empty or unreadable AMD GPU sysfs metrics instead of terminating the
+  service.
+- Developed and tested on an AMD BC-250 with a DeepCool CH270 DIGITAL.
+
+BC-250 support is the main reason this fork exists. Changes unrelated to the BC-250 should
+preferably go to the upstream project.
 
 # Installation
-Simply download the latest [release](https://github.com/Nortank12/deepcool-digital-linux/releases)
+Simply download the latest upstream
+[release](https://github.com/Nortank12/deepcool-digital-linux/releases)
 and make it executable:
 ```bash
 chmod +x deepcool-digital-linux
 ```
 You will need root permission to send data to the device.
+
+> [!NOTE]
+> The releases above are built from the upstream project and do not include the
+> BC-250-specific changes in this fork. Until this fork publishes its own releases,
+> build from source using the instructions below.
 
 > [!NOTE]
 > On Intel's Arc GPUs, you have to use kernel version 6.13 or higher for proper temperature monitoring.
@@ -56,6 +90,9 @@ SUBSYSTEM=="hidraw", ATTRS{idVendor}=="34d3", ATTRS{idProduct}=="1100", MODE="06
 <details>
 <summary><b>Steps for NixOS</b></summary>
 
+> [!NOTE]
+> The Nixpkgs package and the third-party flake track the upstream project and may not include
+> the BC-250-specific changes from this fork.
 
 #### From Nixpkgs
 
@@ -436,11 +473,11 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ## Building
 1. Clone the repository
 ```bash
-git clone https://github.com/Nortank12/deepcool-digital-linux
+git clone https://github.com/LeandroSalvas/deepcool-digital-linux-bc250
 ```
 2. Open the folder
 ```bash
-cd deepcool-digital-linux
+cd deepcool-digital-linux-bc250
 ```
 3. Run the build command
 ```bash
